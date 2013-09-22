@@ -1,6 +1,6 @@
 [Activity]
-name = Markdown
+name = Markdownv2
 activity_version = 1
-bundle_id = org.sugarlabs.Markdown
+bundle_id = org.sugarlabs.Markdownv2
 exec = sugar-activity-web
 icon = activity-icon
