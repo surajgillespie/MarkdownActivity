@@ -1,5 +1,6 @@
 define(function (require) {
     var activity = require("sugar-web/activity/activity");
+    var datastore = require("sugar-web/datastore");
 
     require("Markdown.Converter");
     //require("Markdown.Sanitizer");
@@ -19,22 +20,59 @@ define(function (require) {
         var datastoreObject = activity.getDatastoreObject();
 
         inputTextContent.onblur = function () {
-            console.log(inputTextContent.value);
+            
             var jsonData = JSON.stringify((inputTextContent.value).toString());
             datastoreObject.setDataAsText(jsonData);
             datastoreObject.save(function () {});
         };
         markdownParsing(); //to load for the first time
         datastoreObject.loadAsText(function (error, metadata, data) {
-            console.log(metadata);
-            console.log(data);
             markdowntext = JSON.parse(data);
-
-            console.log(markdowntext);
-
             inputTextContent.value = markdowntext;
             markdownParsing(); //to load again when there is a datastore entry
         });
+
+        var journal = document.getElementById("insertText");
+
+        journal.onclick = function () {
+            activity.showObjectChooser(function (error, result) {
+                //result1 = result.toString();
+                var datastoreObject2 = new datastore.DatastoreObject(result);
+                datastoreObject2.loadAsText(function (error, metadata, data) {
+                    
+                    try {
+                        textdata = JSON.parse(data);
+                    } catch (e) {
+                        textdata = data;
+                    }
+
+                    var inputTextContent = document.getElementById("wmd-input-second");
+                    //inputTextContent.value += textdata;
+                    insertAtCursor(inputTextContent, textdata);
+                });
+
+            });
+        };
+
+        function insertAtCursor(myField, myValue) {
+            //IE support
+            if (document.selection) {
+                myField.focus();
+                sel = document.selection.createRange();
+                sel.text = myValue;
+            }
+            //MOZILLA and others
+            else if (myField.selectionStart || myField.selectionStart == '0') {
+                var startPos = myField.selectionStart;
+                var endPos = myField.selectionEnd;
+                myField.value = myField.value.substring(0, startPos)
+                    + myValue
+                    + myField.value.substring(endPos, myField.value.length);
+            } else {
+                myField.value += myValue;
+            }
+            //markdownParsing();
+        }
 
         function markdownParsing() {
             var converter2 = new Markdown.Converter();
